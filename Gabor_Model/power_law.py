@@ -22,7 +22,7 @@ def solve_implicit(pvals, spectrum, lamb):
     zvals = np.zeros(len(pvals))
     for i,p in enumerate(pvals):
         args = (p, spectrum, lamb)
-        zvals[i] = sp.optimize.root_scalar(f = f, method = 'secant', fprime = fp, x0=2*(np.sum(spectrum)+lamb), x1= 1e-8, args = args).root
+        zvals[i] = sp.optimize.root_scalar(f = f, method = 'newton', fprime = fp, x0 = np.sum(spectrum)+lamb, args = args).root
         #zvals[i] = sp.optimize.root_scalar(f=f, method = 'brentq', bracket = [1e-10,2*np.sum(spectrum)+2*lamb], args = args).root
     return zvals
 
