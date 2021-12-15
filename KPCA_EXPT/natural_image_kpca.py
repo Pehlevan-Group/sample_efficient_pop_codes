@@ -10,6 +10,7 @@ import matplotlib as mpl
 from cycler import cycler
 mpl.rcParams['axes.prop_cycle'] = cycler(color='bgrcmyk')
 
+fig_dir = 'figures/'
 
 
 def sorted_spectral_decomp(resp, imgs=None):
@@ -25,7 +26,7 @@ def sorted_spectral_decomp(resp, imgs=None):
     plt.ylabel(r'image 2', fontsize=20)
     plt.colorbar()
     plt.tight_layout()
-    plt.savefig('kernel_matrix_natural_images.pdf')
+    plt.savefig(fig_dir+ 'kernel_matrix_natural_images.pdf')
     plt.show()
     print(K.shape)
     s,v = np.linalg.eigh(K)
@@ -161,14 +162,14 @@ plt.imshow(A[:,:,3], cmap = 'gray')
 plt.xticks([])
 plt.yticks([])
 plt.tight_layout()
-plt.savefig('bird_picture.pdf')
+plt.savefig(fig_dir+'bird_picture.pdf')
 plt.show()
 
 plt.imshow(B[:,:,8].T, cmap = 'gray')
 plt.xticks([])
 plt.yticks([])
 plt.tight_layout()
-plt.savefig('mouse_picture.pdf')
+plt.savefig(fig_dir+'mouse_picture.pdf')
 plt.show()
 
 y = class_stim[inds_12]
@@ -194,7 +195,7 @@ plt.xlabel(r'$k$', fontsize=myaxis_font)
 plt.ylabel(r'$\lambda_k$', fontsize=myaxis_font)
 plt.title('Spectra Natural Images', fontsize=myaxis_font)
 plt.tight_layout()
-plt.savefig('spectrum_natural_image_task.pdf')
+plt.savefig(fig_dir+'spectrum_natural_image_task.pdf')
 plt.show()
 
 
@@ -216,7 +217,7 @@ plt.xlabel(r'$k$', fontsize=myaxis_font)
 plt.ylabel(r'$C(k)$', fontsize=myaxis_font)
 plt.title('Image Recognition', fontsize=myaxis_font)
 plt.tight_layout()
-plt.savefig('cumulative_power_natural_image_task.pdf')
+plt.savefig(fig_dir + 'cumulative_power_natural_image_task.pdf')
 plt.show()
 
 Psi = v @ np.diag(np.sqrt(s))
@@ -230,14 +231,14 @@ neg = [i for i in range(len(y)) if y[i] == -1]
 plt.figure(figsize=(1.8,1.5))
 plt.scatter(Psi[pos,0], Psi[pos,1], s = 0.3, color = 'C4', label = 'bird')
 plt.scatter(Psi[neg,0], Psi[neg,1], s = 0.3, color = 'C5', label = 'mouse')
-plt.xlabel('K-PC 1', fontsize=myaxis_font)
-plt.ylabel('K-PC 2', fontsize=myaxis_font)
+plt.xlabel(r'$\sqrt{\lambda_1} \psi_1(\theta)$', fontsize=myaxis_font)
+plt.ylabel(r'$\sqrt{\lambda_2} \psi_2(\theta)$', fontsize = myaxis_font)
 plt.title('Image Recognition',fontsize=myaxis_font)
 plt.xticks([])
 plt.yticks([])
 plt.legend()
 plt.tight_layout()
-plt.savefig('feature_space_natural_images.pdf')
+plt.savefig(fig_dir + 'feature_space_natural_images.pdf')
 plt.show()
 
 pvals = np.linspace(10, 500, 20).astype('int')
@@ -251,5 +252,5 @@ plt.plot(pvals, np.mean(expt, axis = 1))
 plt.xlabel(r'$p$', fontsize = myaxis_font)
 plt.ylabel(r'$E_g$', fontsize=myaxis_font)
 plt.tight_layout()
-plt.savefig('natural_image_classification.pdf')
+plt.savefig(fig_dir + 'natural_image_classification.pdf')
 plt.show()

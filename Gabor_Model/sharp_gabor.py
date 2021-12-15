@@ -9,7 +9,7 @@ import matplotlib as mpl
 from cycler import cycler
 mpl.rcParams['axes.prop_cycle'] = cycler(color='bgrcmyk')
 
-
+fig_dir = 'figures/'
 poly_d = [0,1,2,3]
 
 
@@ -20,6 +20,7 @@ plt.rcParams.update({'font.size': myfont})
 ivals = np.linspace(-1,1,num = 100)
 plt.figure(figsize=(2.4,2))
 
+"""
 q_a_vals = [[0,0], [1,0], [2,0], [1, 0.5], [1, 0.75]]
 for q in []:
     if q == 0:
@@ -40,7 +41,7 @@ plt.tight_layout()
 plt.savefig('f_i_curve_no_legend.pdf')
 plt.show()
 
-"""
+
 for i, pd in enumerate(poly_d):
     if pd == 0:
         plt.plot(ivals, np.heaviside(ivals, 0), label = r'$q = %d$' % pd, linewidth=1)
@@ -56,7 +57,7 @@ plt.legend()
 plt.tight_layout()
 plt.savefig('f_i_curve_no_legend.pdf')
 plt.show()
-"""
+
 
 plt.figure(figsize=(1.8,1.5))
 plt.plot(ivals, ivals**2, linewidth=4)
@@ -66,7 +67,7 @@ plt.tight_layout()
 plt.savefig('f_i_curve_complex_no_legend.pdf')
 plt.show()
 
-
+"""
 
 
 
@@ -97,7 +98,7 @@ for i, a in enumerate(axs):
     a.axis('off')
 plt.tight_layout()
 plt.subplots_adjust(wspace = -0.1,hspace=-0.1)
-plt.savefig('gabor_bank.pdf')
+plt.savefig(fig_dir + 'gabor_bank.pdf')
 plt.show()
 
 k = 5*np.ones(2)
@@ -120,7 +121,7 @@ plt.text(stimulus.shape[0]/2 * (1 - 0.25), stimulus.shape[0]/2 * (1-0.4), r'$\ph
 plt.axis('off')
 plt.title(r'Grating Stimulus',fontsize=8)
 plt.tight_layout()
-plt.savefig('grating_stimulus.pdf')
+plt.savefig(fig_dir + 'grating_stimulus.pdf')
 plt.show()
 
 
@@ -129,7 +130,7 @@ plt.imshow(gabor, cmap = 'gray')
 plt.axis('off')
 plt.title(r'$(\theta_i,\phi_i)$',fontsize=40)
 plt.tight_layout()
-plt.savefig('single_gabor.pdf')
+plt.savefig(fig_dir + 'single_gabor.pdf')
 plt.show()
 
 phi += math.pi/2
@@ -144,9 +145,10 @@ plt.imshow(gabor, cmap = 'gray')
 plt.axis('off')
 plt.title(r'$(\theta_i,\phi_i+\pi/2)$',fontsize=40)
 plt.tight_layout()
-plt.savefig('single_gabor_phase_shift.pdf')
+plt.savefig(fig_dir + 'single_gabor_phase_shift.pdf')
 plt.show()
 
+"""
 phi = np.linspace(-math.pi,math.pi,100)
 theta = np.linspace(-math.pi,math.pi,100)
 R = np.zeros((phi.shape[0],theta.shape[0]))
@@ -278,3 +280,4 @@ plt.legend()
 plt.tight_layout()
 plt.savefig('kernel_nonlinear.pdf')
 plt.show()
+"""

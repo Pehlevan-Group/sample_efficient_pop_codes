@@ -149,10 +149,10 @@ N = 8000
 P = 2000
 
 # simple cell parameters from fit
-thresh = 0.2
+thresh = 0.3
 sigma = 5
-q = 1.7
-lamb = 0.25
+q = 2.5
+lamb = 2.5
 
 num_theta = 50
 num_phi = 50
@@ -249,7 +249,7 @@ plt.show()
 
 
 tvals = np.linspace(0,1,num = 30)
-ptheory = np.logspace(0, 2, 80)
+ptheory = np.logspace(0, 3.5, 80)
 
 gen_err_ori = np.zeros((len(tvals), len(ptheory)))
 gen_err_phase = np.zeros((len(tvals), len(ptheory)))
@@ -445,7 +445,7 @@ plot_tool(repeat_linsp_ck, all_ck_avg, labels, r'$k$', r'$C(k)$', 'Combined Task
 
 
 # possible expts: 1. vary nonlinearity, 2. vary threshold
-
+"""
 theta_stim = np.linspace(-math.pi/2,math.pi/2, P)
 theta_pr = 2*math.pi*np.random.random_sample(N)
 
@@ -598,3 +598,4 @@ plot_tool(x_list, s_ts, labels, r'$k$', r'$\lambda_k$', 'Sparse Codes', 'spectra
 plot_tool(ck_linsp, all_ck, labels, r'$k$', r'$C(k)$', 'Sparse Codes', 'cumulative_power_vary_sparsity.pdf', style = 'semilogx')
 plot_tool(repeat_ptheory, Eg, labels, r'$p$', r'$E_g$', 'Easy Task', 'generalization_vary_sparsity.pdf', x_expt = repeat_pvals, y_expt = errs)
 plot_tool(repeat_theta, all_k_plot, labels, r'$\theta$', r'$K(\theta)$', 'Kernels', 'kernel_vs_threshold.pdf', style = 'linear')
+"""

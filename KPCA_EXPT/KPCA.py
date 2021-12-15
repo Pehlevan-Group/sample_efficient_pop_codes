@@ -27,6 +27,7 @@ line_width = 1
 dataroot = 'grating_data'
 db = np.load(os.path.join(dataroot, 'database.npy'), allow_pickle=True)
 fs = []
+fig_dir = 'figures/'
 
 all_mouse_names = []
 mouse_dict = {}
@@ -113,8 +114,9 @@ for t,f in enumerate(fs):
     plt.xticks([0,math.pi],[r'$0$',r'$\pi$'])
     plt.title('Original', fontsize=myaxis_font)
     plt.tight_layout()
-    plt.savefig('tuning_curves_mouse_r.pdf')
+    plt.savefig(fig_dir + 'tuning_curves_mouse_r.pdf')
     plt.show()
+    plt.close()
 
 
     #fig = plt.figure(figsize=(1.8,1.5))
@@ -138,17 +140,19 @@ for t,f in enumerate(fs):
     ax.set_zticks([])
     ax.set_xlabel([])
     #ax.legend(loc=(0.5,0.5,0.5), frameon=0)
-    ax.legend(loc = 'best', bbox_to_anchor=(0.8, 0.8, 0.3, 0.3))
+    #ax.legend(loc = 'best', bbox_to_anchor=(0.8, 0.8, 0.3, 0.3))
     plt.title('Neural Space')
+    plt.legend()
     #ax.set_xlabel(r'$r_1$', fontsize=myaxis_font)
     #ax.set_ylabel(r'$r_2$', fontsize=myaxis_font)
     #ax.set_zlabel(r'$r_3$', fontsize = myaxis_font)
     ax.set_xlabel(r'$r_1$', fontsize=30)
     ax.set_ylabel(r'$r_2$',fontsize=30)
     ax.set_zlabel(r'$r_3$',fontsize=30)
-    #plt.tight_layout()
-    plt.savefig('tuning_curves_mouse_r_3d.pdf')
+    plt.tight_layout()
+    plt.savefig(fig_dir + 'tuning_curves_mouse_r_3d.pdf')
     plt.show()
+    plt.close()
 
     plt.rcParams.update({'font.size': myfont})
 
@@ -166,7 +170,7 @@ for t,f in enumerate(fs):
     #plt.yticks([])
     #plt.title('Original Code', fontsize=myaxis_font)
     plt.tight_layout()
-    plt.savefig('tuning_curves_mouse_r_many.pdf')
+    plt.savefig(fig_dir + 'tuning_curves_mouse_r_many.pdf')
     plt.show()
 
 
@@ -184,7 +188,7 @@ for t,f in enumerate(fs):
     #plt.xticks([])
     #plt.yticks([])
     plt.tight_layout()
-    plt.savefig('tuning_curves_mouse_rotated_r.pdf')
+    plt.savefig(fig_dir+'tuning_curves_mouse_rotated_r.pdf')
     plt.show()
 
     #K_sub = 1/1000 * resp_avg[0:1000,:].T @ resp_avg[0:1000,:]
@@ -202,7 +206,7 @@ for t,f in enumerate(fs):
     plt.colorbar()
 
     plt.tight_layout()
-    plt.savefig('kernel_matrix_sub_no_rotate.pdf')
+    plt.savefig(fig_dir + 'kernel_matrix_sub_no_rotate.pdf')
     plt.show()
 
 
@@ -257,7 +261,7 @@ for t,f in enumerate(fs):
     plt.ylabel(r'$\theta_2$', fontsize=myaxis_font)
     plt.colorbar()
     plt.tight_layout()
-    plt.savefig('kernel_matrix.pdf')
+    plt.savefig(fig_dir + 'kernel_matrix.pdf')
     plt.show()
 
     kavg = np.zeros(K.shape[0])
@@ -270,7 +274,7 @@ for t,f in enumerate(fs):
     plt.xlabel(r'$\theta$', fontsize=myaxis_font)
     plt.ylabel(r'$K(\theta)$', fontsize=myaxis_font)
     plt.tight_layout()
-    plt.savefig('kernel_real_space.pdf')
+    plt.savefig(fig_dir + 'kernel_real_space.pdf')
     plt.show()
     kavg = np.zeros(K.shape[0])
 
@@ -289,7 +293,7 @@ for t,f in enumerate(fs):
     plt.xlabel(r'$\theta$', fontsize=myaxis_font)
     plt.ylabel(r'$K(\theta)$', fontsize=myaxis_font)
     plt.tight_layout()
-    plt.savefig('kernel_real_space_shift.pdf')
+    plt.savefig(fig_dir + 'kernel_real_space_shift.pdf')
     plt.show()
 
     s,u = np.linalg.eigh(K)
@@ -302,7 +306,7 @@ for t,f in enumerate(fs):
     plt.ylabel(r'$\lambda_k$', fontsize=myaxis_font)
     plt.ylim([1e-3,1])
     plt.tight_layout()
-    plt.savefig('spectrum_population_grating_big.pdf')
+    plt.savefig(fig_dir + 'spectrum_population_grating_big.pdf')
     plt.show()
 
     # smooth out eigenfunctions for visualization
@@ -321,7 +325,7 @@ for t,f in enumerate(fs):
     #plt.xticks([])
     #plt.yticks([])
     plt.tight_layout()
-    plt.savefig('eigenfunctions_big.pdf')
+    plt.savefig(fig_dir + 'eigenfunctions_big.pdf')
     plt.show()
 
 
@@ -339,7 +343,7 @@ for t,f in enumerate(fs):
     plt.ylabel(r'$E_k$', fontsize=myaxis_font)
     plt.title('Mode Errors',fontsize=myaxis_font)
     plt.tight_layout()
-    plt.savefig('mode_err_curves_population_grating.pdf')
+    plt.savefig(fig_dir + 'mode_err_curves_population_grating.pdf')
     plt.show()
 
 
@@ -357,12 +361,12 @@ for t,f in enumerate(fs):
     plt.scatter(feature_space[0,inds_90_180], feature_space[1, inds_90_180], s=1, color = 'C5', label = r'$-1$')
     plt.xticks([])
     plt.yticks([])
-    plt.xlabel('k-PC 1', fontsize=myaxis_font)
-    plt.ylabel('k-PC 2', fontsize = myaxis_font)
-    plt.title('Easy Task',fontsize=myaxis_font)
+    plt.xlabel(r'$\sqrt{\lambda_1} \psi_1(\theta)$', fontsize=myaxis_font)
+    plt.ylabel(r'$\sqrt{\lambda_2} \psi_2(\theta)$', fontsize = myaxis_font)
+    plt.title('Low Freq. Task',fontsize=myaxis_font)
     plt.legend()
     plt.tight_layout()
-    plt.savefig('feature_k_space_mouse_low_freq.pdf')
+    plt.savefig(fig_dir + 'feature_k_space_mouse_low_freq.pdf')
     plt.show()
 
     inds_0 = [i for i in range(len(stim_vals)) if np.cos(6*stim_vals[i]) > 0]
@@ -373,28 +377,31 @@ for t,f in enumerate(fs):
     plt.scatter(feature_space[0,inds_1], feature_space[1, inds_1], s=1, color = 'C5', label = r'$-1$')
     plt.xticks([])
     plt.yticks([])
-    plt.xlabel('k-PC 1', fontsize=myaxis_font)
-    plt.ylabel('k-PC 2', fontsize=myaxis_font)
-    plt.title('Hard Task',fontsize=myaxis_font)
+    plt.xlabel(r'$\sqrt{\lambda_1} \psi_1(\theta)$', fontsize=myaxis_font)
+    plt.ylabel(r'$\sqrt{\lambda_2} \psi_2(\theta)$', fontsize = myaxis_font)
+    plt.title('High Freq. Task',fontsize=myaxis_font)
     plt.legend()
     plt.tight_layout()
-    plt.savefig('feature_k_space_mouse_high_freq.pdf')
+    plt.savefig(fig_dir + 'feature_k_space_mouse_high_freq.pdf')
     plt.show()
 
 
     y1 = np.sign(np.cos(2*stim_vals))
     y2 = np.sign(np.cos(6*stim_vals))
     plt.figure(figsize=(1.8,1.5))
-
+    plt.subplot(2,1,1)
     plt.plot(stim_vals, y1, linewidth=line_width, color = 'C0')
-    plt.plot(stim_vals, y2, '--', linewidth=line_width, color = 'C2')
+    plt.ylabel(r'$y(\theta)$', fontsize=myaxis_font)
+    plt.title('Low Freq. Task', fontsize=myaxis_font)
+    plt.subplot(2,1,2)
+    plt.plot(stim_vals, y2, linewidth=line_width, color = 'C2')
     #plt.legend()
     plt.xlabel(r'$\theta$', fontsize=myaxis_font)
     plt.ylabel(r'$y(\theta)$', fontsize=myaxis_font)
-    plt.title('Orientation Tasks',fontsize=myaxis_font)
+    plt.title('High Freq. Task',fontsize=myaxis_font)
     plt.xticks([0,math.pi], [r'$0$',r'$\pi$'])
     plt.tight_layout()
-    plt.savefig('low_high_target_visual.pdf')
+    plt.savefig(fig_dir + 'low_high_target_visual.pdf')
     plt.show()
 
     coeffs1 = (u.T @ y1)**2
@@ -409,10 +416,10 @@ for t,f in enumerate(fs):
     plt.scatter(feature_space[sort1[0],inds_90_180], feature_space[sort1[1], inds_90_180], color = 'C5', s= 1)
     plt.xticks([])
     plt.yticks([])
-    plt.xlabel('k-PC %d'% sort1[0], fontsize=myaxis_font)
-    plt.ylabel('k-PC %d' % sort1[1], fontsize =myaxis_font)
+    plt.xlabel(r'$\sqrt{\lambda_1} \psi_1(\theta)$', fontsize=myaxis_font)
+    plt.ylabel(r'$\sqrt{\lambda_2} \psi_2(\theta)$', fontsize = myaxis_font)
     plt.tight_layout()
-    plt.savefig('feature_k_space_mouse_low_freq_max_var_kpc.pdf')
+    plt.savefig(fig_dir + 'feature_k_space_mouse_low_freq_max_var_kpc.pdf')
     plt.show()
 
     inds_0 = [i for i in range(len(stim_vals)) if np.cos(5*stim_vals[i]) > 0]
@@ -423,9 +430,9 @@ for t,f in enumerate(fs):
     plt.scatter(feature_space[sort2[0],inds_1], feature_space[sort2[1], inds_1], color = 'C5', s = 1)
     plt.xticks([])
     plt.yticks([])
-    plt.xlabel('k-PC %d'% sort1[0])
-    plt.ylabel('k-PC %d' % sort1[1])
-    plt.savefig('feature_k_space_mouse_high_freq_max_var_kpc.pdf')
+    plt.xlabel(r'$\sqrt{\lambda_3} \psi_{3}(\theta)$')
+    plt.ylabel(r'$\sqrt{\lambda_{3}} \psi_{3}(\theta)$')
+    plt.savefig(fig_dir + 'feature_k_space_mouse_high_freq_max_var_kpc.pdf')
     plt.show()
 
 
@@ -435,12 +442,12 @@ for t,f in enumerate(fs):
     plt.scatter(feature_space[2,inds_1], feature_space[3, inds_1], color = 'C5', label = r'$-1$', s = 1)
     plt.xticks([])
     plt.yticks([])
-    plt.xlabel('k-PC %d'% 3, fontsize=myaxis_font)
-    plt.ylabel('k-PC %d' % 4, fontsize=myaxis_font)
-    plt.title('Hard Task',fontsize=myaxis_font)
+    plt.xlabel(r'$\sqrt{\lambda_3} \psi_3(\theta)$', fontsize=myaxis_font)
+    plt.ylabel(r'$\sqrt{\lambda_4} \psi_4(\theta)$', fontsize = myaxis_font)
+    plt.title('High Freq. Task',fontsize=myaxis_font)
     plt.legend()
     plt.tight_layout()
-    plt.savefig('feature_k_space_mouse_high_freq_68_kpc.pdf')
+    plt.savefig(fig_dir + 'feature_k_space_mouse_high_freq_68_kpc.pdf')
     plt.show()
 
 
@@ -493,8 +500,11 @@ for t,f in enumerate(fs):
     #plt.yticks([])
     #plt.legend()
     plt.tight_layout()
-    plt.savefig('task_visual.pdf')
+    plt.savefig(fig_dir + 'task_visual.pdf')
     plt.show()
+
+
+
 
     kmax = 50
     print(len(spectrum))
@@ -510,7 +520,7 @@ for t,f in enumerate(fs):
     plt.title('Cumulative Power',fontsize=myaxis_font)
     plt.legend()
     plt.tight_layout()
-    plt.savefig('cumulative_sign_harmonic_mouse.pdf')
+    plt.savefig(fig_dir + 'cumulative_sign_harmonic_mouse.pdf')
     plt.show()
 
     plt.figure(figsize=(2.4,2))
@@ -529,7 +539,7 @@ for t,f in enumerate(fs):
     plt.title('Cumulative Power',fontsize=myaxis_font)
     plt.legend()
     plt.tight_layout()
-    plt.savefig('cumulative_powerlaw_scaling.pdf')
+    plt.savefig(fig_dir + 'cumulative_powerlaw_scaling.pdf')
     plt.show()
 
 
@@ -549,7 +559,7 @@ for t,f in enumerate(fs):
     #ax.set_xscale('log')
     plt.legend()
     plt.tight_layout()
-    plt.savefig('power_law_scalings_mouse_ori.pdf')
+    plt.savefig(fig_dir + 'power_law_scalings_mouse_ori.pdf')
     plt.show()
 
     plt.figure(figsize=(2.4,2))
@@ -566,21 +576,23 @@ for t,f in enumerate(fs):
     #ax.set_xscale('log')
     plt.legend()
     plt.tight_layout()
-    plt.savefig('power_law_spectra_mouse.pdf')
+    plt.savefig(fig_dir + 'power_law_spectra_mouse.pdf')
     plt.show()
 
 
-    plt.figure(figsize=(2.4,2))
+    plt.figure(figsize=(1.8,1.5))
     plt.plot(stim_vals, y_easy_true, '--', color = 'black', label = r'$y(x)$', linewidth=line_width)
+    plt.plot(stim_vals, yhat1, color = 'C0')
+    plt.plot(stim_vals, yhat1, '--', color ='C1')
     plt.xlabel(r'$\theta$', fontsize=myaxis_font)
     plt.ylabel(r'$y(\theta)$', fontsize=myaxis_font)
     plt.title('Target Function',fontsize=myaxis_font)
     plt.xticks([0,math.pi], [r'$0$',r'$\pi$'])
     #plt.xticks([])
     #plt.yticks([])
-    plt.legend()
+    #plt.legend()
     plt.tight_layout()
-    plt.savefig('task_visual_powerlaw.pdf')
+    plt.savefig(fig_dir + 'task_visual_powerlaw.pdf')
     plt.show()
 
 
@@ -609,7 +621,7 @@ for t,f in enumerate(fs):
     #ax.set_xscale('log')
     #plt.legend()
     plt.tight_layout()
-    plt.savefig('mouse_lc.pdf')
+    plt.savefig(fig_dir+ 'mouse_lc.pdf')
     plt.show()
 
 
@@ -622,5 +634,5 @@ for t,f in enumerate(fs):
     plt.ylabel(r'$E_g$', fontsize=myaxis_font)
     plt.title('Learning Curves',fontsize=myaxis_font)
     plt.tight_layout()
-    plt.savefig('mouse_rotate_lcs.pdf')
+    plt.savefig(fig_dir + 'mouse_rotate_lcs.pdf')
     plt.show()
