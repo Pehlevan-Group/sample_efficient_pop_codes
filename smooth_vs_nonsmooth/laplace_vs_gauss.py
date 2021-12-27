@@ -9,7 +9,7 @@ from cycler import cycler
 from tqdm import tqdm
 
 myaxis_font = 8
-myfont = 12
+myfont = 6
 mpl.rcParams['axes.prop_cycle'] = cycler(color='bgrcmyk')
 
 plt.rcParams.update({'font.size': myfont})
@@ -101,23 +101,115 @@ alpha_von = np.linalg.solve(K_vonmises_s + lamb * np.eye(p) , ys)
 alpha_laplace = np.linalg.solve(K_laplace_s + lamb * np.eye(p) , ys)
 yhat_von = von_mises(X, x_s, beta_vonmises) @ alpha_von
 yhat_laplace = power_law_kernel(X, x_s, beta, km) @ alpha_laplace
-plt.plot(X, y, label = r'Target Fn.', color = 'black')
-plt.plot(X, yhat_von, label = r'Smooth Code', color = 'C0')
-plt.plot(X, yhat_laplace, label = r'Non-smooth Kernel', color ='C1')
+plt.figure(figsize=(2.4,1.8))
+
+plt.plot(X, y, label = r'Target', color = 'black')
+plt.plot(X, yhat_von, label = r'Smooth', color = 'C0')
+plt.plot(X, yhat_laplace, label = r'Non-Smooth', color ='C1')
 plt.legend()
-plt.xlabel(r'$\theta$',fontsize=20)
-plt.ylabel(r'$f(\theta)$',fontsize=20)
+plt.xlabel(r'$\theta$',fontsize=myaxis_font)
+plt.ylabel(r'$f(\theta)$',fontsize=myaxis_font)
 plt.tight_layout()
 plt.savefig(fig_dir + 'predictor_nonsmooth_target.pdf')
 plt.show()
 
-plt.plot(X, von_mises(X,np.array([0]), beta), label = 'Smooth Code Kernel')
-plt.plot(X, power_law_kernel(X,np.array([0]),beta,km)-0.6, label = 'Non-smooth Code Kernel')
-plt.xlabel(r'$\theta$',fontsize=20)
-plt.ylabel(r'$K(\theta)$',fontsize=20)
+plt.figure(figsize=(2.4,1.8))
+
+plt.plot(X, von_mises(X,np.array([0]), beta), label = 'Smooth')
+plt.plot(X, power_law_kernel(X,np.array([0]),beta,km)-0.6, label = 'Non-Smooth')
+plt.xlabel(r'$\theta$',fontsize=myaxis_font)
+plt.ylabel(r'$K(\theta)$',fontsize=myaxis_font)
 plt.legend()
 plt.tight_layout()
 plt.savefig(fig_dir + 'smooth_vs_nonsmooth_kernel.pdf')
+plt.show()
+
+pexp = np.logspace(0, 3, 15).astype('int')
+pvals = np.logspace(0, 3.2, 100)
+
+K1 = von_mises(X,X, beta_vonmises)
+K2 = power_law_kernel(X,X, beta, km)
+
+lamb = 100
+
+s1,v1 = np.linalg.eigh(K1)
+indssort = np.argsort(s1)[::-1]
+s1 = s1[indssort]
+v1 = v1[:,indssort]
+
+K1 = K1/s1[0]
+s1 = s1/s1[0]
+
+s2,v2 = np.linalg.eigh(K2)
+indssort = np.argsort(s2)[::-1]
+s2 = s2[indssort]
+v2 = v2[:,indssort]
+
+K2 = K2/s2[0]
+s2 = s2/s2[0]
+
+c1 = (v1.T @ y)**2 / np.dot(y,y)
+c2 = (v2.T @ y)**2 / np.dot(y,y)
+
+exp1 = k_expt(pexp, K1, y, 1/K1.shape[0]*lamb * np.trace(K1))
+exp2 = k_expt(pexp, K2, y, 1/K1.shape[0]*lamb * np.trace(K2))
+eg1 = theory_curve.mode_errs(pvals, s1 * K1.shape[0], c1, lamb * np.trace(K1)).sum(axis = 0)
+eg2 = theory_curve.mode_errs(pvals, s2 * K2.shape[0], c2, lamb * np.trace(K2)).sum(axis = 0)
+
+plt.figure(figsize=(2.4,1.8))
+
+plt.loglog(pvals, eg1, color = 'C0', label = 'Smooth')
+plt.loglog(pvals, eg2, color = 'C1', label = 'Non-Smooth')
+plt.loglog(pexp, exp1, 'o', markersize=3, color = 'C0')
+plt.loglog(pexp, exp2, 'o', markersize=3, color = 'C1')
+plt.xlabel(r'$P$',fontsize = myaxis_font)
+plt.ylabel(r'$E_g$',fontsize = myaxis_font)
+#plt.legend()
+plt.tight_layout()
+plt.savefig(fig_dir + 'learning_curve_nonsmooth_target.pdf')
+plt.show()
+
+lamb = 1e-3
+sigma_vonmises = 0.025
+x_s = 2*math.pi*np.random.random_sample(p) - math.pi
+beta = 1
+beta_vonmises = 1/sigma_vonmises**2
+
+y = target_fn(X, beta, 15)
+norm = np.sqrt( np.mean(y**2) )
+y = y / norm
+plt.plot(X, y)
+plt.show()
+
+ys = target_fn(x_s, beta, 15) / norm
+K_vonmises_s = von_mises(x_s,x_s, beta_vonmises)
+K_laplace_s = power_law_kernel(x_s,x_s, beta, km)
+
+alpha_von = np.linalg.solve(K_vonmises_s + lamb * np.eye(p) , ys)
+alpha_laplace = np.linalg.solve(K_laplace_s + lamb * np.eye(p) , ys)
+yhat_von = von_mises(X, x_s, beta_vonmises) @ alpha_von
+yhat_laplace = power_law_kernel(X, x_s, beta, km) @ alpha_laplace
+plt.figure(figsize=(2.4,1.8))
+
+plt.plot(X, y, label = r'Target', color = 'black')
+plt.plot(X, yhat_von, label = r'Smooth', color = 'C0')
+plt.plot(X, yhat_laplace, label = r'Non-Smooth', color ='C1')
+plt.legend()
+plt.xlabel(r'$\theta$',fontsize=myaxis_font)
+plt.ylabel(r'$f(\theta)$',fontsize=myaxis_font)
+plt.tight_layout()
+plt.savefig(fig_dir + 'predictor_smooth_target.pdf')
+plt.show()
+
+plt.figure(figsize=(2.4,1.8))
+
+plt.plot(X, von_mises(X,np.array([0]), beta_vonmises), label = 'Smooth')
+plt.plot(X, power_law_kernel(X,np.array([0]),beta,km)-0.6, label = 'Non-Smooth')
+plt.xlabel(r'$\theta$',fontsize=myaxis_font)
+plt.ylabel(r'$K(\theta)$',fontsize=myaxis_font)
+plt.legend()
+plt.tight_layout()
+plt.savefig(fig_dir + 'smooth_vs_nonsmooth_kernel_smoothtask.pdf')
 plt.show()
 
 pexp = np.logspace(0, 3, 15 ).astype('int')
@@ -152,16 +244,17 @@ exp2 = k_expt(pexp, K2, y, 1/K1.shape[0]*lamb * np.trace(K2))
 eg1 = theory_curve.mode_errs(pvals, s1 * K1.shape[0], c1, lamb * np.trace(K1)).sum(axis = 0)
 eg2 = theory_curve.mode_errs(pvals, s2 * K2.shape[0], c2, lamb * np.trace(K2)).sum(axis = 0)
 
+plt.figure(figsize=(2.4,1.8))
 
-plt.loglog(pvals, eg1, color = 'C0', label = 'Smooth Code')
-plt.loglog(pvals, eg2, color = 'C1', label = 'Non-smooth Code')
-plt.loglog(pexp, exp1,'o', color = 'C0')
-plt.loglog(pexp, exp2, 'o', color = 'C1')
-plt.xlabel(r'$P$',fontsize = 20)
-plt.ylabel(r'$E_g$',fontsize = 20)
+plt.loglog(pvals, eg1, color = 'C0', label = 'Smooth')
+plt.loglog(pvals, eg2, color = 'C1', label = 'Non-Smooth')
+plt.loglog(pexp, exp1, 'o', markersize=3, color = 'C0')
+plt.loglog(pexp, exp2, 'o', markersize=3, color = 'C1')
+plt.xlabel(r'$P$',fontsize = myaxis_font)
+plt.ylabel(r'$E_g$',fontsize = myaxis_font)
 #plt.legend()
 plt.tight_layout()
-plt.savefig(fig_dir + 'learning_curve_nonsmooth_target.pdf')
+plt.savefig(fig_dir + 'learning_curve_smooth_target.pdf')
 plt.show()
 
 #sigma1 = 0.04
