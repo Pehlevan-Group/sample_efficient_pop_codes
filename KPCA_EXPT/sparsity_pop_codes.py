@@ -127,6 +127,40 @@ for t,f in enumerate(fs):
     #plt.show()
 
 
+    Pvals = np.logspace(0.2,2.85).astype('int')
+    cost_ori = []
+    cost_rot = []
+    N = 800
+    for i,P in enumerate(Pvals):
+        num_samples = 50
+        original = []
+        rotated = []
+        for t in range(num_samples):
+            randints = np.random.randint(0,resp_avg.shape[1], P)
+            resp = resp_avg[0:N,randints]
+            true_code_cost = np.mean( resp - np.amin(resp,axis = 1)[:,np.newaxis] )
+            Q, _ = np.linalg.qr(np.random.standard_normal((N,N)), 'complete')
+            code_rot = Q @ resp
+            code_rot += -  np.amin(code_rot, axis = 1)[:,np.newaxis]
+            original += [np.mean(true_code_cost)]
+            rotated += [np.mean(code_rot)]
+
+        cost_ori += [np.mean(original)]
+        cost_rot += [np.mean(rotated)]
+
+    plt.figure(figsize = (2,1.8))
+    plt.loglog(Pvals, cost_ori, 'o', label = 'Original', markersize=1)
+    plt.loglog(Pvals, cost_rot, 'o', label = 'Rotated', markersize=1)
+    plt.loglog(Pvals, np.sqrt(np.log(Pvals)) / np.mean(np.sqrt(np.log(Pvals)))*np.mean(cost_rot), '--', color = 'black', label = r'$\sqrt{\ln{P}}$')
+    plt.xlabel(r'$P$',fontsize = myaxis_font)
+    plt.ylabel(r'Average Cost', fontsize=myaxis_font)
+    plt.title('Scaling with Stimuli', fontsize=myaxis_font)
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(fig_dir + 'rotation_scaling_w_stimuli.pdf')
+    plt.show()
+
+    """
     Nvals = [10,25,50,100,250,500]
     pvals = []
     std_devs = []
@@ -194,7 +228,7 @@ for t,f in enumerate(fs):
     plt.ylabel(r'Std. Devs from Mean', fontsize = myaxis_font)
     #plt.title(r'$T$ Test', fontsize=myaxis_font)
     plt.tight_layout()
-    plt.savefig('std_devs_vs_N.pdf')
+    plt.savefig(fig_dir + 'std_devs_vs_N.pdf')
     plt.show()
 
     #plt.figure(figsize = (1.8,1.8))
@@ -205,6 +239,10 @@ for t,f in enumerate(fs):
     #plt.tight_layout()
     #plt.savefig('T_stat_vs_N.pdf')
     #plt.show()
+    """
+
+
+
 
 """
     start = time.time()
