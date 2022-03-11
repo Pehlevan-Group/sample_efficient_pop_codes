@@ -283,7 +283,7 @@ for i,t in enumerate(tqdm(tvals)):
 
 plt.figure(figsize=(1.8,1.5))
 plt.contourf(gen_err_ori, levels = 25, cmap= 'rainbow')
-plt.plot(np.linspace(0,len(ptheory)-1, len(ptheory)), np.argmin(gen_err_ori,axis = 0) + 0.4 , label = r'optimal $t$', color = 'black')
+plt.plot(np.linspace(0,len(ptheory)-1, len(ptheory)), np.argmin(gen_err_ori,axis = 0) + 0.4 , label = r'optimal $s$', color = 'black')
 plt.legend()
 plt.xticks(np.linspace(0,len(ptheory) -1, 3), [1,50,100])
 plt.yticks(np.linspace(0,len(tvals) -1, 3), np.linspace(np.amin(tvals), np.amax(tvals), 3))
