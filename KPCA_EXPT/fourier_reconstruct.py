@@ -140,6 +140,7 @@ A_blurred = filt.gaussian(A_expt, sigma = 1.25)
 A_blurred = A_blurred - A_blurred.mean(axis =2)[:,:,np.newaxis]
 theta = np.linspace(0., 180., max(A_expt.shape))
 
+
 def get_wavelet_decomp(image, level = 2):
     c = image
     wavelet = pywt.Wavelet('db1')

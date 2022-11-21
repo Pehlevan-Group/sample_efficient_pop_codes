@@ -219,7 +219,7 @@ for t,f in enumerate(fs):
     plt.ylabel(r'$K(\theta)$',fontsize=myaxis_font)
     plt.legend()
     plt.tight_layout()
-    plt.savefig('fit_params.pdf')
+    plt.savefig('figures/fit_params.pdf')
     plt.show()
 
     # get spectra by computing the eigendecomposition of circulant matrix
@@ -231,7 +231,7 @@ for t,f in enumerate(fs):
 
     plt.loglog(s1[0:len(s1)-3])
     plt.loglog(s2[0:len(s2)-3])
-    plt.savefig('spec_compare.pdf')
+    plt.savefig('figures/spec_compare.pdf')
     plt.show()
 
 
@@ -249,10 +249,10 @@ for t,f in enumerate(fs):
     plt.plot(zvals, np.maximum(zvals,0)**q, label=r'$a = 0$')
     plt.title(r'Model Fit: $\hat{q},\hat{a}=%0.1f, %0.1f$' % (q,a), fontsize=myaxis_font)
     plt.xlabel(r'$z$', fontsize=myaxis_font)
-    plt.ylabel(r'$\psi(z)$', fontsize=myaxis_font)
+    plt.ylabel(r'$g(z)$', fontsize=myaxis_font)
     plt.legend()
     plt.tight_layout()
-    plt.savefig('nonlinearity_plots_fit.pdf')
+    plt.savefig('figures/nonlinearity_plots_fit.pdf')
     plt.show()
 
     # compute spectra for expt fit, and some other ones
@@ -293,7 +293,7 @@ for t,f in enumerate(fs):
     plt.xlabel(r'$\theta$', fontsize=myaxis_font)
     plt.ylabel(r'$K(\theta)$', fontsize=myaxis_font)
     plt.tight_layout()
-    plt.savefig('kernel_plots_fit.pdf')
+    plt.savefig('figures/kernel_plots_fit.pdf')
     plt.show()
 
 
@@ -309,5 +309,5 @@ for t,f in enumerate(fs):
     plt.ylabel(r'$\lambda_k$', fontsize=myaxis_font)
     plt.ylim([1e-8,10])
     plt.tight_layout()
-    plt.savefig('spectra_plots_fit.pdf')
+    plt.savefig('figures/spectra_plots_fit.pdf')
     plt.show()

@@ -20,7 +20,7 @@ plt.rcParams.update({'font.size': myfont})
 ivals = np.linspace(-1,1,num = 100)
 plt.figure(figsize=(2.4,2))
 
-"""
+
 q_a_vals = [[0,0], [1,0], [2,0], [1, 0.5], [1, 0.75]]
 for q in []:
     if q == 0:
@@ -31,7 +31,7 @@ for q in []:
 for a in [0.5,0.75]:
     plt.plot(ivals, np.maximum(ivals-a, np.zeros(len(ivals))))
 plt.xlabel(r'$z$', fontsize=myaxis_font)
-plt.ylabel(r'$\psi(z)$',fontsize=myaxis_font)
+plt.ylabel(r'$g(z)$',fontsize=myaxis_font)
 plt.title('Nonlinearities',fontsize=myaxis_font)
 plt.legend()
 #plt.axis('off')
@@ -40,7 +40,7 @@ plt.legend()
 plt.tight_layout()
 plt.savefig('f_i_curve_no_legend.pdf')
 plt.show()
-
+"""
 
 for i, pd in enumerate(poly_d):
     if pd == 0:
@@ -101,13 +101,13 @@ plt.subplots_adjust(wspace = -0.1,hspace=-0.1)
 plt.savefig(fig_dir + 'gabor_bank.pdf')
 plt.show()
 
-k = 5*np.ones(2)
+k_ones = 5*np.ones(2)
 phi = math.pi
 stimulus = np.zeros((len(x),len(y)))
 for i,xi in enumerate(x):
     for j,yj in enumerate(y):
         v = np.array([xi,yj])
-        stimulus[i,j] = np.cos(np.dot(v,k)+phi)
+        stimulus[i,j] = np.cos(np.dot(v,k_ones)+phi)
 
 r_plot = stimulus.shape[0] * 0.4 * np.linspace(0, 1, 100)
 

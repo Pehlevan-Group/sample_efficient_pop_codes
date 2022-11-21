@@ -100,6 +100,63 @@ def target_oval(data):
 def target_fn_no_phase(theta, kori = 2):
     return np.sign(np.cos(kori*theta))
 
+def partial_phase_selective_population(data, params, sigma,thresh, a = 1.3):
+    N = params.shape[0]
+    P = data.shape[0]
+    theta = data[:,0]
+    phi = data[:,1]
+    theta_pr = params[:,0]
+    phi_pr = params[:,1]
+    shifts = params[:,2]
+    #print(shifts)
+    # N x P matrix
+    diff_th = np.outer( theta_pr, np.ones(P) ) - np.outer(np.ones(N), theta)
+    diff_phi = np.outer( phi_pr, np.ones(P) ) - np.outer(np.ones(N), phi)
+    sum_phi = np.outer(  phi_pr, np.ones(P) ) + np.outer(np.ones(N), phi)
+
+    R_unshift = 0.5 * np.exp(-sigma*(1+np.cos(diff_th))) * np.cos(sum_phi) + 0.5 * np.exp(-sigma*(1-np.cos(diff_th))) * np.cos(diff_phi)
+    R_shift = 0.5 * np.exp(-sigma*(1+np.cos(diff_th))) * np.cos(sum_phi+shifts[:,np.newaxis]) + 0.5 * np.exp(-sigma*(1-np.cos(diff_th))) * np.cos(diff_phi-shifts[:,np.newaxis])
+
+    #Current = R_unshift**2 + R_shift**2 - thresh**2
+    Current = np.sqrt(R_unshift**2 + R_shift**2) - thresh
+    Current = Current * (Current > 0.0)
+    R = Current**(a)
+    return R
+
+def dirichlet_mixture_code(data, params, sigma,thresh, a = 1.3):
+    N = params.shape[0]
+    P = data.shape[0]
+    theta = data[:,0]
+    phi = data[:,1]
+    theta_pr = params[:,0]
+    phi_pr = params[:,1]
+    betas = params[:,2:]
+    #print(shifts)
+    # N x P matrix
+    diff_th = np.outer( theta_pr, np.ones(P) ) - np.outer(np.ones(N), theta)
+    diff_phi = np.outer( phi_pr, np.ones(P) ) - np.outer(np.ones(N), phi)
+    sum_phi = np.outer(  phi_pr, np.ones(P) ) + np.outer(np.ones(N), phi)
+
+    R1 = np.exp(sigma*np.cos(diff_th)) * np.cos(diff_phi)
+    R2 = np.exp(sigma*np.cos(diff_th)) * np.cos(diff_phi+np.pi/2.0)
+    R3 = np.exp(sigma*np.cos(diff_th)) * np.cos(diff_phi+np.pi)
+    R4 = np.exp(sigma*np.cos(diff_th)) * np.cos(diff_phi+3.0*np.pi/2.0)
+
+    b1 = np.outer(betas[:,0], np.ones(R1.shape[1]))
+    b2 = np.outer(betas[:,1], np.ones(R1.shape[1]))
+    b3 = np.outer(betas[:,2], np.ones(R1.shape[1]))
+    b4 = np.outer(betas[:,3], np.ones(R1.shape[1]))
+
+    Rsq = b1 * R1**2 * (R1 > 0.0) +b2*R2**2 * (R2 > 0.0) + b3*R3**2 * (R3 > 0.0)+b4* R4**2 * (R4 > 0.0)
+
+    #R_unshift = 0.5 * np.exp(-sigma*(1+np.cos(diff_th))) * np.cos(sum_phi) + 0.5 * np.exp(-sigma*(1-np.cos(diff_th))) * np.cos(diff_phi)
+    #R_shift = 0.5 * np.exp(-sigma*(1+np.cos(diff_th))) * np.cos(sum_phi+shifts[:,np.newaxis]) + 0.5 * np.exp(-sigma*(1-np.cos(diff_th))) * np.cos(diff_phi-shifts[:,np.newaxis])
+    #Current = R_unshift**2 + R_shift**2 - thresh**2
+    Current = np.sqrt(Rsq) - thresh
+    Current = Current * (Current > 0.0)
+    R = Current**(a)
+    return R
+
 # task 1: y = sign( cos theta )
 # task 2: y = sign( cos theta cos phi)
 
@@ -143,17 +200,34 @@ def plot_tool(x_list, y_list, leg_labels, xlabel, ylabel, title, file_name, x_ex
     return
 
 
+# compute the F1 power and the F0 power for the code
+def compute_F1_F0(R, data):
+
+    N = params.shape[0]
+    P = data.shape[0]
+    theta = data[:,0]
+    phi = data[:,1]
+    cos_fn = np.cos(phi)
+    sin_fn = np.sin(phi)
+
+    proj_cos = 1/ P * R @ cos_fn
+    proj_sin = 1/P * R @ sin_fn
+    F1 = np.sqrt(proj_cos**2 + proj_sin**2) # R^N
+    F0 = 1/P * R @ np.ones(P) # R^N
+    return F1 / F0
+
+
 np.random.seed(0)
 
 N = 8000
 P = 2000
 
 # simple cell parameters from fit
-thresh = 0.3
+thresh = 0.25
 sigma = 5
 q = 2.5
+#lamb = 1.5
 lamb = 2.5
-
 num_theta = 50
 num_phi = 50
 theta_vals = np.linspace(-math.pi/2,math.pi/2, num_theta)
@@ -166,10 +240,10 @@ for i in range(num_theta):
 
 
 data_flat = data.reshape((num_theta * num_phi, 2))
-params = 2*math.pi*np.random.random_sample((N,2))
+params = 2*math.pi*np.random.random_sample((N,6))
 R_comp = gabor_complex(data_flat, params, sigma)
 R_simp = gabor_simple_cells(data_flat, params, sigma)
-
+print("got simple and complex codes")
 """
 plt.figure(figsize=(2.4,2))
 plt.imshow(R_comp[1,:].reshape((num_theta,num_phi)).transpose())
@@ -199,8 +273,69 @@ plt.show()
 
 K_comp = 1/R_comp.shape[0] * R_comp.T @ R_comp
 K_simp = 1/R_simp.shape[0] * R_simp.T @ R_simp
+
+
 K_comp = K_comp / np.trace(K_comp)
 K_simp = K_simp / np.trace(K_simp)
+
+s, v = sort_eigh(K_comp)
+plt.figure(figsize=(1.8,1.5))
+for i in range(12):
+    plt.subplot(3,4,i+1)
+    plt.imshow(v[:,i].reshape((50,50)).T )
+    plt.xticks([])
+    plt.yticks([])
+plt.suptitle(r'Complex Code $\psi_k(\theta,\phi)$',fontsize=myaxis_font)
+plt.savefig('figures/complex_pop_eigenfunctions.pdf')
+plt.show()
+
+"""
+plt.figure(figsize=(1.8,1.5))
+for i in range(12):
+    plt.subplot(3,4,i+1)
+    plt.imshow(R_comp[i,:].reshape((50,50)).T )
+    plt.xticks([])
+    plt.yticks([])
+plt.suptitle(r'Complex Code $r_i(\theta,\phi)$',fontsize=myaxis_font)
+plt.savefig('figures/complex_tuning_curves.pdf')
+plt.show()
+"""
+
+s, v = sort_eigh(K_simp)
+plt.figure(figsize=(1.8,1.5))
+for i in range(12):
+    plt.subplot(3,4,i+1)
+    plt.imshow(v[:,i].reshape((50,50)).T)
+    plt.xticks([])
+    plt.yticks([])
+plt.suptitle(r'Simple Code $\psi_k(\theta,\phi)$',fontsize=myaxis_font)
+plt.savefig('figures/simple_pop_eigenfunctions.pdf')
+plt.show()
+
+K_mix = K_simp * 0.4 + K_comp * 0.6
+s, v = sort_eigh(K_mix)
+plt.figure(figsize=(1.8,1.5))
+for i in range(12):
+    plt.subplot(3,4,i+1)
+    plt.imshow(v[:,i].reshape((50,50)).T)
+    plt.xticks([])
+    plt.yticks([])
+plt.suptitle(r'Mixture Code $\psi_k(\theta,\phi)$',fontsize=myaxis_font)
+plt.savefig('figures/mixture_pop_eigenfunctions.pdf')
+plt.show()
+
+"""
+plt.figure(figsize=(1.8,1.5))
+for i in range(12):
+    plt.subplot(3,4,i+1)
+    plt.imshow(R_simp[i,:].reshape((50,50)).T )
+    plt.xticks([])
+    plt.yticks([])
+plt.suptitle(r'Simple Code $r_i(\theta,\phi)$',fontsize=myaxis_font)
+plt.savefig('figures/simple_tuning_curves.pdf')
+plt.show()
+"""
+
 
 
 
@@ -248,8 +383,269 @@ plt.show()
 """
 
 
+
+alpha_vals = np.logspace(-2,4.0,num = 30)
+#alpha_vals = np.linspace(0.0,np.pi/2, num= 30)
+ptheory = np.logspace(0, 2.0, 80)
+
+
+gen_err_ori = np.zeros((len(alpha_vals), len(ptheory)))
+gen_err_phase = np.zeros((len(alpha_vals), len(ptheory)))
+gen_err_slant = np.zeros((len(alpha_vals), len(ptheory)))
+
+cum_ori = np.zeros((len(alpha_vals), K_simp.shape[0]))
+cum_phase= np.zeros((len(alpha_vals), K_simp.shape[0]))
+cum_slant = np.zeros((len(alpha_vals), K_simp.shape[0]))
+
+
+for i,alpha in enumerate(tqdm(alpha_vals)):
+    np.random.seed(i)
+    #betas = np.random.gamma(alpha, size = (N,4))
+    #betas = betas / betas.sum(axis = 1)[:,np.newaxis]
+    betas = np.random.dirichlet(alpha*np.ones(4), size = N)
+    print(betas[0:5,:])
+    print(np.mean(np.std(betas, axis = 1)))
+    params[:,2:] = betas
+    #params[:,2] = np.pi/2.0 + 1/alpha * np.random.standard_normal(N)
+    #params[:,2] = 1/alpha * np.random.standard_normal(N)
+    #params[:,2] = np.pi/2.0 + alpha  + 1/5.0*np.random.standard_normal(N)
+    #R = partial_phase_selective_population(data_flat, params, sigma, thresh)
+    R = dirichlet_mixture_code(data_flat, params, sigma,thresh)
+    K = 1/R.shape[0] * R.T @ R
+    F1F0 = compute_F1_F0(R, data_flat)
+
+    #K = t*K_simp + (1-t)*K_comp
+    s, v = sort_eigh(K)
+    K = K/s[0]
+    s = s/s[0]
+    if i == 0:
+        v_low = v
+        R_low = R
+        F1F0_low = F1F0
+    #lamb_t = lamb * np.trace(K)
+    lamb_t = lamb
+    # task 1: only orientation
+    coeff_ori = 1/(K.shape[0]) * (v.T @ y_ori)**2
+    gen_err_ori[i,:] = power_law.mode_errs(ptheory, s, coeff_ori, lamb_t).sum(axis = 0)
+    cum_ori[i,:] = np.cumsum(coeff_ori) / np.sum(coeff_ori) # check to see if this is backwards  (left to right is ideal)
+
+    # task 2: only phase
+    coeff_phase =  1/(K.shape[0]) *(v.T @ y_phase)**2
+    gen_err_phase[i,:] = power_law.mode_errs(ptheory, s, coeff_phase, lamb_t).sum(axis = 0)
+    cum_phase[i,:] = np.cumsum(coeff_phase) / np.sum(coeff_phase)
+
+    # task 3: hybrid
+    coeff_slant =  1/(K.shape[0]) *(v.T @ y_slant)**2
+    gen_err_slant[i,:] = power_law.mode_errs(ptheory, s, coeff_slant, lamb_t).sum(axis = 0)
+    cum_slant[i,:] = np.cumsum(coeff_slant) / np.sum(coeff_slant)
+
+
+
+
+plt.figure(figsize=(1.8,1.5))
+plt.hist(F1F0_low, density = True)
+plt.xlabel('F1/F0',fontsize=myaxis_font)
+plt.ylabel('Density',fontsize=myaxis_font)
+plt.xlim([0,1])
+plt.tight_layout()
+plt.savefig('figures/low_alpha_F1_F0.pdf')
+plt.show()
+
+
+plt.figure(figsize=(1.8,1.5))
+plt.hist(F1F0, density = True)
+plt.xlabel('F1/F0',fontsize=myaxis_font)
+plt.ylabel('Density',fontsize=myaxis_font)
+plt.xlim([0,1])
+plt.tight_layout()
+plt.savefig('figures/high_alpha_F1_F0.pdf')
+plt.show()
+
+print(tvals)
+
+plt.figure(figsize=(1.8,1.5))
+for i in range(12):
+    plt.subplot(4,3,i+1)
+    plt.imshow(v_low[:,i].reshape((50,50)))
+    plt.xticks([])
+    plt.yticks([])
+    #plt.title('k=%d' % (i +1),fontsize=myaxis_font)
+#plt.tight_layout()
+plt.savefig('figures/low_alpha_eigenfunctions.pdf')
+plt.show()
+
+plt.figure(figsize=(1.8,1.5))
+for i in range(12):
+    plt.subplot(4,3,i+1)
+    plt.imshow(v_low[:,i].reshape((50,50)))
+    plt.xticks([])
+    plt.yticks([])
+    #plt.title('k=%d' % (i +1),fontsize=myaxis_font)
+#plt.tight_layout()
+plt.savefig('figures/low_alpha_eigenfunctions.pdf')
+plt.show()
+
+
+
+plt.figure(figsize=(1.8,1.5))
+for i in range(12):
+    plt.subplot(4,3,i+1)
+    plt.imshow(v[:,i].reshape((50,50)))
+    plt.xticks([])
+    plt.yticks([])
+    #plt.title('k=%d' % (i +1))
+plt.savefig('figures/high_alpha_eigenfunctions.pdf')
+plt.show()
+
+
+plt.figure(figsize=(1.8,1.5))
+for i in range(12):
+    plt.subplot(4,3,i+1)
+    plt.imshow(R_low[i,:].reshape((50,50)))
+    plt.xticks([])
+    plt.yticks([])
+    #plt.title('k=%d' % (i +1),fontsize=myaxis_font)
+#plt.tight_layout()
+plt.savefig('figures/low_alpha_code.pdf')
+plt.show()
+
+plt.figure(figsize=(1.8,1.5))
+for i in range(12):
+    plt.subplot(4,3,i+1)
+    plt.imshow(R[i,:].reshape((50,50)))
+    plt.xticks([])
+    plt.yticks([])
+    #plt.title('k=%d' % (i +1),fontsize=myaxis_font)
+#plt.tight_layout()
+plt.savefig('figures/high_alpha_code.pdf')
+plt.show()
+
+min_alpha = np.log10(np.amin(alpha_vals))
+max_alpha = np.log10(np.amax(alpha_vals))
+
+plt.figure(figsize=(1.8,1.5))
+plt.contourf(gen_err_ori, levels = 25, cmap= 'rainbow')
+plt.plot(np.linspace(0,len(ptheory)-1, len(ptheory)), np.argmin(gen_err_ori,axis = 0) - 0.4 , label = r'optimal $\alpha$', color = 'black')
+plt.legend()
+plt.xticks(np.linspace(0,len(ptheory) -1, 3), [1,50,100])
+plt.yticks(np.linspace(0,len(alpha_vals) -1, 2),  np.linspace(min_alpha, max_alpha, 2))
+#plt.yticks(np.linspace(0,len(alpha_vals) -1, 2), np.linspace(np.amin(np.log10(alpha_vals)), np.amax(np.log10(alpha_vals)), 2))
+plt.ylim([0,len(alpha_vals)-1])
+plt.xlabel(r'$P$',fontsize=myaxis_font)
+plt.ylabel(r'$\log_{10} \ \alpha$',fontsize=myaxis_font)
+plt.title(r'$E_g$ Orientation',fontsize=myaxis_font)
+cbar =plt.colorbar(fraction = 0.1, ticks = [np.amin(gen_err_ori), np.amax(gen_err_ori)])
+cbar.ax.set_yticklabels([r'%0.1f'% np.amin(gen_err_ori), r'%0.1f'% np.amax(gen_err_ori)])
+plt.tight_layout()
+plt.savefig('figures/partial_phase_ori_task_contour.pdf')
+plt.show()
+
+
+plt.figure(figsize=(1.8,1.5))
+num_k = 100
+log_cum = np.log10(1.0 - cum_ori[:,0:num_k])
+plt.contourf(log_cum, levels = 25, cmap= 'rainbow')
+#plt.legend()
+plt.xticks(np.linspace(0,num_k, 3), np.linspace(0, num_k, 3))
+plt.yticks(np.linspace(0,len(alpha_vals) -1, 2),  np.linspace(min_alpha, max_alpha, 2))
+
+#plt.yticks(np.linspace(0,len(alpha_vals) -1, 2), np.linspace(np.amin(alpha_vals), np.amax(alpha_vals), 2))
+plt.xlabel(r'$k$',fontsize=myaxis_font)
+plt.ylabel(r'$\log_{10} \ \alpha$',fontsize=myaxis_font)
+plt.title(r'$\log(1-C(k))$ Orientation',fontsize=myaxis_font)
+cbar =plt.colorbar()
+cbar.set_ticks([np.amin(log_cum),np.amax(log_cum)])
+cbar.set_ticklabels([r'%0.1f'% np.amin(log_cum), r'%0.1f'% np.amax(log_cum)])
+plt.tight_layout()
+plt.savefig('figures/partial_phase_ori_task_CK_contour.pdf')
+plt.show()
+
+plt.figure(figsize=(1.8,1.5))
+plt.contourf(gen_err_phase, levels = 25, cmap= 'rainbow')
+plt.plot(np.linspace(0,len(ptheory)-1, len(ptheory)), np.argmin(gen_err_phase,axis = 0)+0.4, color = 'black')
+plt.xticks(np.linspace(0,len(ptheory)-1, 3), [1,50,100])
+plt.yticks(np.linspace(0,len(alpha_vals) -1, 2),  np.linspace(min_alpha, max_alpha, 2))
+
+#plt.yticks(np.linspace(0,len(alpha_vals)-1, 2), np.linspace(np.amin(alpha_vals), np.amax(alpha_vals), 2))
+plt.ylim([0,len(alpha_vals)-1])
+plt.xlabel(r'$P$',fontsize=myaxis_font)
+plt.ylabel(r'$\log_{10} \ \alpha$',fontsize=myaxis_font)
+plt.ylim([0,len(alpha_vals)-1])
+plt.title(r'$E_g$ Phase',fontsize=myaxis_font)
+cbar = plt.colorbar(fraction = 0.1, ticks = [np.amin(gen_err_phase), np.amax(gen_err_phase)])
+cbar.ax.set_yticklabels([r'%0.1f'% np.amin(gen_err_phase), r'%0.1f'% np.amax(gen_err_phase)])
+plt.tight_layout()
+plt.savefig('figures/partial_phase_phase_task_contour.pdf')
+plt.show()
+
+
+plt.figure(figsize=(1.8,1.5))
+num_k = 100
+log_cum = np.log10(1.0-cum_phase[:,0:num_k])
+print(log_cum)
+plt.contourf(log_cum, levels = 25, cmap= 'rainbow')
+#plt.legend()
+plt.xticks(np.linspace(0,num_k, 3), np.linspace(0, num_k, 3))
+plt.yticks(np.linspace(0,len(alpha_vals) -1, 2),  np.linspace(min_alpha, max_alpha, 2))
+
+#plt.yticks(np.linspace(0,len(alpha_vals) -1, 3), np.linspace(np.amin(alpha_vals), np.amax(alpha_vals), 3))
+plt.xlabel(r'$k$',fontsize=myaxis_font)
+plt.ylabel(r'$\log_{10} \ \alpha$',fontsize=myaxis_font)
+
+plt.title(r'$\log(1-C(k))$ Phase',fontsize=myaxis_font)
+#cbar =plt.colorbar(fraction = 0.1, ticks = [np.amin(cum_ori[0:num_k]), np.amax(cum_ori[0:num_k])])
+cbar = plt.colorbar()
+cbar.set_ticks([np.amin(log_cum),np.amax(log_cum)])
+cbar.set_ticklabels([r'%0.1f'% np.amin(log_cum), r'%0.1f'% np.amax(log_cum)])
+plt.tight_layout()
+plt.savefig('figures/partial_phase_phase_task_CK_contour.pdf')
+plt.show()
+
+plt.figure(figsize=(1.8,1.5))
+plt.contourf(gen_err_slant, levels = 25, cmap = 'rainbow')
+plt.plot(np.linspace(0,len(ptheory)-1, len(ptheory)), np.argmin(gen_err_slant,axis = 0)-0.4, color = 'black')
+plt.xticks(np.linspace(0,len(ptheory)-1, 3), [1,50,100])
+plt.yticks(np.linspace(0,len(alpha_vals) -1, 2),  np.linspace(min_alpha, max_alpha, 2))
+
+#plt.yticks(np.linspace(0,len(alpha_vals)-1, 3), np.linspace(np.amin(alpha_vals), np.amax(alpha_vals), 3))
+plt.ylim([0,len(alpha_vals)-1])
+
+plt.xlabel(r'$P$',fontsize=myaxis_font)
+plt.ylabel(r'$\log_{10} \ \alpha$',fontsize=myaxis_font)
+plt.title(r'$E_g$ Hybrid',fontsize=myaxis_font)
+cbar = plt.colorbar(fraction = 0.1, ticks = [np.amin(gen_err_slant), np.amax(gen_err_slant)])
+cbar.ax.set_yticklabels([r'%0.1f'% np.amin(gen_err_slant), r'%0.1f'% np.amax(gen_err_slant)])
+plt.tight_layout()
+plt.savefig('figures/partial_phase_hybrid_task_contour.pdf')
+plt.show()
+
+
+plt.figure(figsize=(1.8,1.5))
+num_k = 100
+log_cum = np.log10(1.0 - cum_slant[:,0:num_k])
+plt.contourf(log_cum, levels = 25, cmap= 'rainbow')
+#plt.legend()
+plt.xticks(np.linspace(0,num_k, 3), np.linspace(0, num_k, 3))
+plt.yticks(np.linspace(0,len(alpha_vals) -1, 2),  np.linspace(min_alpha, max_alpha, 2))
+
+#plt.yticks(np.linspace(0,len(alpha_vals) -1, 3), np.linspace(np.amin(alpha_vals), np.amax(alpha_vals), 3))
+plt.xlabel(r'$k$',fontsize=myaxis_font)
+plt.ylabel(r'$\log_{10} \ \alpha$',fontsize=myaxis_font)
+plt.title(r'$\log(1-C(k))$ Hybrid',fontsize=myaxis_font)
+cbar =plt.colorbar()
+cbar.set_ticks([np.amin(log_cum),np.amax(log_cum)])
+cbar.set_ticklabels([r'%0.1f'% np.amin(log_cum), r'%0.1f'% np.amax(log_cum)])
+plt.tight_layout()
+plt.savefig('figures/partial_phase_hybrid_task_CK_contour.pdf')
+plt.show()
+
+
+plt.plot(tvals, tvals**2)
+plt.show()
+
 tvals = np.linspace(0,1,num = 30)
 ptheory = np.logspace(0, 3.5, 80)
+
 
 gen_err_ori = np.zeros((len(tvals), len(ptheory)))
 gen_err_phase = np.zeros((len(tvals), len(ptheory)))
@@ -287,7 +683,7 @@ plt.plot(np.linspace(0,len(ptheory)-1, len(ptheory)), np.argmin(gen_err_ori,axis
 plt.legend()
 plt.xticks(np.linspace(0,len(ptheory) -1, 3), [1,50,100])
 plt.yticks(np.linspace(0,len(tvals) -1, 3), np.linspace(np.amin(tvals), np.amax(tvals), 3))
-plt.xlabel(r'$p$',fontsize=myaxis_font)
+plt.xlabel(r'$P$',fontsize=myaxis_font)
 plt.ylabel(r'$s$',fontsize=myaxis_font)
 plt.title(r'$E_g$ Orientation',fontsize=myaxis_font)
 cbar =plt.colorbar(fraction = 0.1, ticks = [np.amin(gen_err_ori), np.amax(gen_err_ori)])
@@ -319,7 +715,7 @@ plt.contourf(gen_err_phase, levels = 25, cmap= 'rainbow')
 plt.plot(np.linspace(0,len(ptheory)-1, len(ptheory)), np.argmin(gen_err_phase,axis = 0)-0.4, color = 'black')
 plt.xticks(np.linspace(0,len(ptheory)-1, 3), [1,50,100])
 plt.yticks(np.linspace(0,len(tvals)-1, 3), np.linspace(np.amin(tvals), np.amax(tvals), 3))
-plt.xlabel(r'$p$',fontsize=myaxis_font)
+plt.xlabel(r'$P$',fontsize=myaxis_font)
 plt.ylabel(r'$s$',fontsize=myaxis_font)
 plt.title(r'$E_g$ Phase',fontsize=myaxis_font)
 cbar = plt.colorbar(fraction = 0.1, ticks = [np.amin(gen_err_phase), np.amax(gen_err_phase)])
@@ -353,7 +749,7 @@ plt.contourf(gen_err_slant, levels = 25, cmap = 'rainbow')
 plt.plot(np.linspace(0,len(ptheory)-1, len(ptheory)), np.argmin(gen_err_slant,axis = 0)+0.4, color = 'black')
 plt.xticks(np.linspace(0,len(ptheory)-1, 3), [1,50,100])
 plt.yticks(np.linspace(0,len(tvals)-1, 3), np.linspace(np.amin(tvals), np.amax(tvals), 3))
-plt.xlabel(r'$p$',fontsize=myaxis_font)
+plt.xlabel(r'$P$',fontsize=myaxis_font)
 plt.ylabel(r'$s$',fontsize=myaxis_font)
 plt.title(r'$E_g$ Hybrid',fontsize=myaxis_font)
 cbar = plt.colorbar(fraction = 0.1, ticks = [np.amin(gen_err_slant), np.amax(gen_err_slant)])
